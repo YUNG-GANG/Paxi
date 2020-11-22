@@ -1,6 +1,6 @@
-package com.yungnickyoung.minecraft.packie.mixin;
+package com.yungnickyoung.minecraft.paxi.mixin;
 
-import com.yungnickyoung.minecraft.packie.Packie;
+import com.yungnickyoung.minecraft.paxi.Paxi;
 import net.minecraft.resource.*;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,12 +14,12 @@ import java.util.HashSet;
 public class MixinMinecraftServer {
     @Inject(at=@At("INVOKE"), method="Lnet/minecraft/server/MinecraftServer;loadDataPacks(Lnet/minecraft/resource/ResourcePackManager;Lnet/minecraft/resource/DataPackSettings;Z)Lnet/minecraft/resource/DataPackSettings;")
     private static void loadDataPacks(ResourcePackManager resourcePackManager, DataPackSettings dataPackSettings, boolean safeMode, CallbackInfoReturnable<DataPackSettings> info) {
-        FileResourcePackProvider newProvider = new FileResourcePackProvider(Packie.PACK_DIRECTORY, ResourcePackSource.field_25347);
+        FileResourcePackProvider newProvider = new FileResourcePackProvider(Paxi.PACK_DIRECTORY, ResourcePackSource.field_25347);
         resourcePackManager.providers =  new HashSet<>(resourcePackManager.providers);
         for (ResourcePackProvider provider : resourcePackManager.providers) {
             if (
                 provider instanceof FileResourcePackProvider &&
-                ((FileResourcePackProvider)provider).packsFolder.getAbsolutePath().equals(Packie.PACK_DIRECTORY.getAbsolutePath())
+                ((FileResourcePackProvider)provider).packsFolder.getAbsolutePath().equals(Paxi.PACK_DIRECTORY.getAbsolutePath())
             ) {
                 return; // provider already exists
             }

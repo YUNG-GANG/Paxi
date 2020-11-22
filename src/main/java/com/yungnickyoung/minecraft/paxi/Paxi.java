@@ -1,4 +1,4 @@
-package com.yungnickyoung.minecraft.packie;
+package com.yungnickyoung.minecraft.paxi;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -8,9 +8,9 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 
-public class Packie implements ModInitializer {
-    public static final String MOD_ID = "packie";
-    public static final File PACK_DIRECTORY = new File(FabricLoader.getInstance().getConfigDir().toString(), "packie");
+public class Paxi implements ModInitializer {
+    public static final String MOD_ID = "paxi";
+    public static final File PACK_DIRECTORY = new File(FabricLoader.getInstance().getConfigDir().toString(), "paxi");
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     @Override
