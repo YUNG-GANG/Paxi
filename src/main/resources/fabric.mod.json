@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "paxi",
+  "version": "${version}",
+  "name": "Paxi",
+  "description": "Drag-and-drop your datapacks and let Paxi do the rest! Global datapacks made easy. Updated to 1.17 by sheriff! ",
+  "authors": [
+    "YUNGNICKYOUNG"
+  ],
+  "contact": {
+    "discord": "discord.gg/rns3beq",
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/paxi-fabric"
+  },
+  "license": "LGPLv3",
+  "icon": "logo.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.yungnickyoung.minecraft.paxi.Paxi"
+    ]
+  },
+  "mixins": [
+    "paxi.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.11.3",
+    "fabric": "*",
+    "minecraft": "1.17.x",
+    "java": ">=16"
+  },
+  "accessWidener" : "paxi.aw"
+}
+
