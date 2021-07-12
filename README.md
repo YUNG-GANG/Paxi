@@ -1,9 +1,7 @@
-# Fabric Example Mod
+# Paxi 1.17 
 
-## Setup
+Minecraft mod for automatic global data pack loading
 
-For setup instructions please see the [fabric wiki page](https://fabricmc.net/wiki/tutorial:setup) that relates to the IDE that you are using.
+The first time you run Paxi, the paxi folder will be created in your Minecraft config directory. Any data packs placed in this folder will be automatically loaded into any world you play. Both zip files and regular folders (containing a pack.mcmeta file) are supported.
 
-## License
-
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+See the CurseForge post for supported versions and releases.
