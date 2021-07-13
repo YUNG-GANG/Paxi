@@ -3,7 +3,7 @@
   "id": "paxi",
   "version": "${version}",
   "name": "Paxi",
-  "description": "Drag-and-drop your datapacks and let Paxi do the rest! Global datapacks made easy.",
+  "description": "Drag-and-drop your data packs and let Paxi do the rest! Global data packs made easy.",
   "authors": [
     "YUNGNICKYOUNG"
   ],
@@ -15,16 +15,14 @@
   "icon": "logo.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "com.yungnickyoung.minecraft.paxi.Paxi"
-    ]
+    "client": [ "com.yungnickyoung.minecraft.paxi.client.PaxiClient" ]
+  },
+  "depends": {
+    "fabricloader": ">=0.10.6",
+    "minecraft": ">=1.17"
   },
   "mixins": [
     "paxi.mixins.json"
   ],
-  "depends": {
-    "fabricloader": ">=0.10.6+build.214",
-    "minecraft": ">=1.17-alpha.20.45.a"
-  },
   "accessWidener" : "paxi.aw"
 }
