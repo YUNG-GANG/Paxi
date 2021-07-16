@@ -4,7 +4,8 @@
   "package": "com.yungnickyoung.minecraft.paxi.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "MixinMinecraftServer"
+    "MixinMinecraftServer",
+    "MixinResourcePackManager"
   ],
   "injectors": {
     "defaultRequire": 1

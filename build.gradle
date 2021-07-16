@@ -18,6 +18,9 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	// YUNG's API - required dependency
+	modImplementation "com.yungnickyoung.minecraft.yungsapi:YungsApi:${project.yungs_api_version}"
+
 }
 
 processResources {

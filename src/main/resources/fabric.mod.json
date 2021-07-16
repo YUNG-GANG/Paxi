@@ -19,7 +19,8 @@
   },
   "depends": {
     "fabricloader": ">=0.10.6",
-    "minecraft": ">=1.17"
+    "minecraft": ">=1.17",
+    "yungsapi": ">=1.17-Fabric-13"
   },
   "mixins": [
     "paxi.mixins.json"

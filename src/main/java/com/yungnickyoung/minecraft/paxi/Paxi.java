@@ -11,5 +11,6 @@ public class Paxi {
     public static final File BASE_PACK_DIRECTORY = new File(FabricLoader.getInstance().getConfigDir().toString(), "paxi");
     public static final File DATA_PACK_DIRECTORY = new File(BASE_PACK_DIRECTORY, "datapacks");
     public static final File RESOURCE_PACK_DIRECTORY = new File(BASE_PACK_DIRECTORY, "resourcepacks");
+    public static final File DATAPACK_ORDERING_FILE = new File(BASE_PACK_DIRECTORY, "datapack_load_order.json");
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 }

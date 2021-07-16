@@ -12,13 +12,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.HashSet;
 
+/**
+ * Manually adds the Paxi provider to the ResourcePackManager when loading a server's data packs.
+ * This occurs right before a call to {@link ResourcePackManager#scanPacks()}, which calls the provider's
+ * register method and then adds all provided Paxi pack profiles to the pack manager.
+ */
 @Mixin(MinecraftServer.class)
 public class MixinMinecraftServer {
     @Inject(at=@At("HEAD"), method="loadDataPacks")
     private static void loadDataPacks(ResourcePackManager resourcePackManager, DataPackSettings dataPackSettings, boolean safeMode, CallbackInfoReturnable<DataPackSettings> info) {
         if (!safeMode) {
             // New provider for the Paxi directory
-            PaxiFileResourcePackProvider newProvider = new PaxiFileResourcePackProvider(Paxi.DATA_PACK_DIRECTORY);
+            PaxiFileResourcePackProvider newProvider = new PaxiFileResourcePackProvider(Paxi.DATA_PACK_DIRECTORY, Paxi.DATAPACK_ORDERING_FILE);
 
             // Set is immutable by default, so we recreate it here
             resourcePackManager.providers = new HashSet<>(resourcePackManager.providers);
@@ -30,7 +35,7 @@ public class MixinMinecraftServer {
                     ((FileResourcePackProvider) provider).packsFolder.getAbsolutePath().equals(Paxi.DATA_PACK_DIRECTORY.getAbsolutePath())
                 ) {
                     Paxi.LOGGER.info("Paxi global data pack provider already exists. Skipping...");
-                    return; // Provider already exists
+                    return;
                 }
             }
 
