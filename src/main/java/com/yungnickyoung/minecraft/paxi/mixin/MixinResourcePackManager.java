@@ -8,6 +8,9 @@ import net.minecraft.resource.ResourcePackProfile;
 import net.minecraft.resource.ResourcePackProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,7 +34,8 @@ public abstract class MixinResourcePackManager {
         throw new AssertionError();
     }
 
-    private List<ResourcePackProfile> buildEnabledProfiles(Collection<String> enabledNames) {
+    @Inject(at=@At("HEAD"), method="buildEnabledProfiles", cancellable = true)
+    private void buildEnabledProfiles(Collection<String> enabledNames, CallbackInfoReturnable<List<ResourcePackProfile>> cir) {
         // Fetch Paxi pack provider
         Optional<ResourcePackProvider> paxiProvider = this.providers.stream().filter(provider -> provider instanceof PaxiFileResourcePackProvider).findFirst();
 
@@ -64,6 +68,6 @@ public abstract class MixinResourcePackManager {
             }
         }
 
-        return ImmutableList.copyOf(allEnabledPacks);
+        cir.setReturnValue(ImmutableList.copyOf(allEnabledPacks));
     }
 }
