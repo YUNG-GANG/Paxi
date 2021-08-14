@@ -5,9 +5,7 @@
   "compatibilityLevel": "JAVA_16",
   "refmap": "paxi.refmap.json",
   "mixins": [
-    "MixinResourcePackManager"
-  ],
-  "server": [
+    "MixinResourcePackManager",
     "MixinMinecraftServer"
   ],
   "injectors": {
