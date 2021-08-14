@@ -2,8 +2,10 @@ package com.yungnickyoung.minecraft.paxi.mixin;
 
 import com.yungnickyoung.minecraft.paxi.Paxi;
 import com.yungnickyoung.minecraft.paxi.PaxiFileResourcePackProvider;
-import com.yungnickyoung.minecraft.paxi.PaxiResourcePackSource;
-import net.minecraft.resource.*;
+import net.minecraft.resource.DataPackSettings;
+import net.minecraft.resource.FileResourcePackProvider;
+import net.minecraft.resource.ResourcePackManager;
+import net.minecraft.resource.ResourcePackProvider;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

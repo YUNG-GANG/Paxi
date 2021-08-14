@@ -5,8 +5,10 @@
   "compatibilityLevel": "JAVA_16",
   "refmap": "paxi.refmap.json",
   "mixins": [
-    "MixinMinecraftServer",
     "MixinResourcePackManager"
+  ],
+  "server": [
+    "MixinMinecraftServer"
   ],
   "injectors": {
     "defaultRequire": 1
