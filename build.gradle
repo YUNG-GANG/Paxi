@@ -22,6 +22,10 @@ dependencies {
 	modImplementation "com.yungnickyoung.minecraft.yungsapi:YungsApi:${project.yungs_api_version}"
 }
 
+loom {
+	refmapName = "paxi.refmap.json"
+}
+
 processResources {
 	inputs.property "version", project.version
 
