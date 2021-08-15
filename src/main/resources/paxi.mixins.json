@@ -6,7 +6,7 @@
   "refmap": "paxi.refmap.json",
   "mixins": [
     "MixinMinecraftServer",
-    "MixinResourcePackManager"
+    "MixinResourcePackList"
   ],
   "injectors": {
     "defaultRequire": 1
