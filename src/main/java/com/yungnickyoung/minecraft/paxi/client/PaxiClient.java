@@ -4,7 +4,6 @@ import com.yungnickyoung.minecraft.paxi.Paxi;
 import com.yungnickyoung.minecraft.paxi.PaxiFileResourcePackProvider;
 import com.yungnickyoung.minecraft.paxi.mixin.FolderRepositorySourceAccessor;
 import com.yungnickyoung.minecraft.paxi.mixin.PackRepositoryAccessor;
-import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.repository.FolderRepositorySource;
 import net.minecraft.server.packs.repository.PackRepository;
@@ -12,13 +11,12 @@ import net.minecraft.server.packs.repository.RepositorySource;
 
 import java.util.HashSet;
 
-public class PaxiClient implements ClientModInitializer {
-    @Override
-    public void onInitializeClient() {
+public class PaxiClient {
+    public static void init() {
         addResourcePackProvider();
     }
 
-    private void addResourcePackProvider() {
+    private static void addResourcePackProvider() {
         PackRepository resourcePackManager = Minecraft.getInstance().getResourcePackRepository();
 
         // New provider for the Paxi directory
