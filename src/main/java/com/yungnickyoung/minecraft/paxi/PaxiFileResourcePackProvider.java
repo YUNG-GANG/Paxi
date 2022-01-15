@@ -4,8 +4,13 @@ import com.google.common.collect.Lists;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
+import com.yungnickyoung.minecraft.paxi.mixin.FolderRepositorySourceAccessor;
 import com.yungnickyoung.minecraft.yungsapi.io.JSON;
-import net.minecraft.resource.*;
+import net.minecraft.server.packs.FilePackResources;
+import net.minecraft.server.packs.FolderPackResources;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.repository.FolderRepositorySource;
+import net.minecraft.server.packs.repository.Pack;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -20,12 +25,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Reimplementation of {@link FileResourcePackProvider} with Paxi pack source hardcoded in.
+ * Reimplementation of {@link FolderRepositorySource} with Paxi pack source hardcoded in.
  * Ensures that any data/resource packs created from this provider are always enabled.
  * Supports an ordering JSON file for loading codependent data packs.
  */
-public class PaxiFileResourcePackProvider extends FileResourcePackProvider {
-    private static final FileFilter POSSIBLE_PACK = (file) -> {
+public class PaxiFileResourcePackProvider extends FolderRepositorySource {
+    private static final FileFilter PACK_FILTER = (file) -> {
         boolean isValidPackZip = file.isFile() && file.getName().endsWith(".zip");
         boolean isValidPackFolder = file.isDirectory() && (new File(file, "pack.mcmeta")).isFile();
         return isValidPackZip || isValidPackFolder;
@@ -44,10 +49,10 @@ public class PaxiFileResourcePackProvider extends FileResourcePackProvider {
     }
 
     @Override
-    public void register(Consumer<ResourcePackProfile> profileAdder, ResourcePackProfile.Factory factory) {
+    public void loadPacks(Consumer<Pack> profileAdder, Pack.PackConstructor factory) {
         // Initialize directories
-        if (!this.packsFolder.isDirectory()) {
-            this.packsFolder.mkdirs();
+        if (!((FolderRepositorySourceAccessor) this).getFolder().isDirectory()) {
+            ((FolderRepositorySourceAccessor) this).getFolder().mkdirs();
         }
 
         // Initialize ordering file if it doesn't already exist
@@ -66,12 +71,12 @@ public class PaxiFileResourcePackProvider extends FileResourcePackProvider {
         if (packs != null) {
             for (File file : packs) {
                 String packName = file.getName();
-                ResourcePackProfile resourcePackProfile = ResourcePackProfile.of(
+                Pack resourcePackProfile = Pack.create(
                     packName,
                     true,
                     this.createResourcePack(file),
                     factory,
-                    ResourcePackProfile.InsertionPosition.TOP,
+                    Pack.Position.TOP,
                     PaxiResourcePackSource.PACK_SOURCE_PAXI);
 
                 if (resourcePackProfile != null) {
@@ -103,19 +108,19 @@ public class PaxiFileResourcePackProvider extends FileResourcePackProvider {
             if (packOrdering == null) {
                 // If loading the ordering failed, we default to random ordering
                 Paxi.LOGGER.error("Unable to load datapack_load_order.json! Is it proper JSON formatting? Ignoring load order...");
-                return this.packsFolder.listFiles(POSSIBLE_PACK);
+                return ((FolderRepositorySourceAccessor) this).getFolder().listFiles(PACK_FILTER);
             } else if (packOrdering.getOrderedPackNames() == null) {
                 // User probably mistyped the "loadOrder" key - Let them know and default to random order
                 Paxi.LOGGER.error("Unable to find entry with name 'loadOrder' in datapack_load_order.json! Ignoring load order...");
-                return this.packsFolder.listFiles(POSSIBLE_PACK);
+                return ((FolderRepositorySourceAccessor) this).getFolder().listFiles(PACK_FILTER);
             } else {
                 // If loading ordering succeeded, we first load the ordered packs
-                List<File> orderedPacks = filesFromNames(packOrdering.getOrderedPackNames(), POSSIBLE_PACK);
+                List<File> orderedPacks = filesFromNames(packOrdering.getOrderedPackNames(), PACK_FILTER);
 
                 orderedPacks.forEach(file -> this.orderedPaxiPacks.add(file.getName()));
 
                 // Next we append any leftover packs with unspecified order
-                File[] allPacks = this.packsFolder.listFiles(POSSIBLE_PACK);
+                File[] allPacks = ((FolderRepositorySourceAccessor) this).getFolder().listFiles(PACK_FILTER);
                 List<File> leftoverPacks = allPacks == null
                     ? Lists.newArrayList()
                     : Arrays.stream(allPacks).filter(file -> !orderedPacks.contains(file)).collect(Collectors.toList());
@@ -123,7 +128,7 @@ public class PaxiFileResourcePackProvider extends FileResourcePackProvider {
             }
         } else {
             // If ordering file doesn't exist, load files in any order
-            return this.packsFolder.listFiles(POSSIBLE_PACK);
+            return ((FolderRepositorySourceAccessor) this).getFolder().listFiles(PACK_FILTER);
         }
     }
 
@@ -135,7 +140,7 @@ public class PaxiFileResourcePackProvider extends FileResourcePackProvider {
         ArrayList<File> packFiles = new ArrayList<>();
 
         for (String fileName : packFileNames) {
-            File packFile = new File(this.packsFolder, fileName);
+            File packFile = new File(((FolderRepositorySourceAccessor) this).getFolder(), fileName);
 
             if (!packFile.exists()) {
                 Paxi.LOGGER.error("Unable to find pack with name {} specified in datapack_load_order.json! Skipping...", fileName);
@@ -150,10 +155,10 @@ public class PaxiFileResourcePackProvider extends FileResourcePackProvider {
      * Creates the proper ResourcePack supplier for the given file.
      * Assumes that the provided file has already been validated as a properly formatted pack.
      */
-    private Supplier<ResourcePack> createResourcePack(File file) {
+    private Supplier<PackResources> createResourcePack(File file) {
         return file.isDirectory()
-            ? () -> new DirectoryResourcePack(file)
-            : () -> new ZipResourcePack(file);
+            ? () -> new FolderPackResources(file)
+            : () -> new FilePackResources(file);
     }
 
     /**
