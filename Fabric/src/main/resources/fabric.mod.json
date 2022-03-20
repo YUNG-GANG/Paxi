@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "paxi",
+  "version": "${version}",
+  "name": "Paxi",
+  "description": "Drag-and-drop your data packs and let Paxi do the rest! Global data packs made easy.",
+  "authors": [
+    "YUNGNICKYOUNG"
+  ],
+  "contact": {
+    "discord": "discord.gg/rns3beq",
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/paxi-fabric"
+  },
+  "license": "LGPLv3",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [ "com.yungnickyoung.minecraft.paxi.client.PaxiClientFabric" ],
+    "main": [ "com.yungnickyoung.minecraft.paxi.PaxiFabric" ]
+  },
+  "depends": {
+    "fabricloader": ">=0.13.3",
+    "minecraft": ">=1.18.2",
+    "java": ">=17",
+    "yungsapi": ">=1.18.2-Fabric-2.0.7"
+  },
+  "mixins": [
+    "paxi.mixins.json",
+    "paxi_fabric.mixins.json"
+  ]
+}

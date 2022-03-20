@@ -1,0 +1,33 @@
+modLoader="javafml" #mandatory
+loaderVersion="[40,)"
+license="LGPLv3"
+issueTrackerURL="https://github.com/yungnickyoung/Paxi/issues"
+
+[[mods]]
+    modId="paxi"
+    version="${file.jarVersion}"
+	displayName="Paxi"
+    credits="Thanks so much to all my patrons!"
+    authors="YUNGNICKYOUNG"
+    description="Drag-and-drop your data packs and let Paxi do the rest! Global data packs made easy."
+    logoFile="icon.png"
+    displayURL="https://www.curseforge.com/minecraft/mc-mods/paxi"
+
+[[dependencies.paxi]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.18.1,1.19)"
+
+[[dependencies.paxi]]
+    modId="forge"
+    mandatory=true
+    versionRange="[40.0.8,)"
+    ordering="NONE"
+    side="SERVER"
+
+[[dependencies.paxi]]
+    modId="yungsapi"
+    versionRange="[1.18.2-Forge-2.0.7,)"
+    mandatory=true
+    ordering="NONE"
+    side="BOTH"
