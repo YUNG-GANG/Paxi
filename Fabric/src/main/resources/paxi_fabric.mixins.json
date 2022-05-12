@@ -6,6 +6,9 @@
   "refmap": "paxi.refmap.json",
   "mixins": [
   ],
+  "client": [
+    "MixinCreateWorldScreen"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
