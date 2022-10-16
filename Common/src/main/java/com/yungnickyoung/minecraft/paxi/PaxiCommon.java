@@ -16,6 +16,5 @@ public class PaxiCommon {
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public static void init() {
-        Services.MODULES.loadModules();
     }
 }

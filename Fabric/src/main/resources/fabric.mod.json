@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "paxi",
+  "id": "${mod_id}",
   "version": "${version}",
-  "name": "Paxi",
-  "description": "Drag-and-drop your data packs and let Paxi do the rest! Global data packs made easy.",
+  "name": "${mod_full_name}",
+  "description": "${mod_description}",
   "authors": [
     "YUNGNICKYOUNG"
   ],
@@ -15,14 +15,13 @@
   "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
-    "client": [ "com.yungnickyoung.minecraft.paxi.client.PaxiClientFabric" ],
     "main": [ "com.yungnickyoung.minecraft.paxi.PaxiFabric" ]
   },
   "depends": {
     "fabricloader": ">=0.13.3",
     "minecraft": ">=1.18.2",
     "java": ">=17",
-    "yungsapi": ">=1.18.2-Fabric-2.0.7"
+    "yungsapi": ">=${minecraft_version}-Fabric-${yungsapi_version}"
   },
   "mixins": [
     "paxi.mixins.json",
