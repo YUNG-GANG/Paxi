@@ -29,7 +29,7 @@ import java.util.stream.Stream;
  * Ensures that any data/resource packs created from this provider are always enabled.
  * Supports an ordering JSON file for loading codependent data packs.
  */
-public class PaxiFileResourcePackProvider extends FolderRepositorySource {
+public class PaxiRepositorySource extends FolderRepositorySource {
     private static final FileFilter PACK_FILTER = (file) -> {
         boolean isValidPackZip = file.isFile() && file.getName().endsWith(".zip");
         boolean isValidPackFolder = file.isDirectory() && (new File(file, "pack.mcmeta")).isFile();
@@ -38,18 +38,19 @@ public class PaxiFileResourcePackProvider extends FolderRepositorySource {
 
     private File ordering;
     public List<String> orderedPaxiPacks = new ArrayList<>();
+    public List<String> unorderedPaxiPacks = new ArrayList<>();
 
-    public PaxiFileResourcePackProvider(File packsFolder, File ordering) {
-        super(packsFolder, PaxiResourcePackSource.PACK_SOURCE_PAXI);
+    public PaxiRepositorySource(File packsFolder, File ordering) {
+        super(packsFolder, PaxiPackSource.PACK_SOURCE_PAXI);
         this.ordering = ordering;
     }
 
-    public PaxiFileResourcePackProvider(File packsFolder) {
-        super(packsFolder, PaxiResourcePackSource.PACK_SOURCE_PAXI);
+    public PaxiRepositorySource(File packsFolder) {
+        super(packsFolder, PaxiPackSource.PACK_SOURCE_PAXI);
     }
 
     @Override
-    public void loadPacks(Consumer<Pack> profileAdder, Pack.PackConstructor factory) {
+    public void loadPacks(Consumer<Pack> profileAdder, Pack.PackConstructor packConstructor) {
         // Initialize directories
         if (!((FolderRepositorySourceAccessor) this).getFolder().isDirectory()) {
             ((FolderRepositorySourceAccessor) this).getFolder().mkdirs();
@@ -74,10 +75,10 @@ public class PaxiFileResourcePackProvider extends FolderRepositorySource {
                 Pack resourcePackProfile = Pack.create(
                     packName,
                     true,
-                    this.createResourcePack(file),
-                    factory,
+                    this.createPackResourcesSupplier(file),
+                    packConstructor,
                     Pack.Position.TOP,
-                    PaxiResourcePackSource.PACK_SOURCE_PAXI);
+                    PaxiPackSource.PACK_SOURCE_PAXI);
 
                 if (resourcePackProfile != null) {
                     profileAdder.accept(resourcePackProfile);
@@ -119,12 +120,16 @@ public class PaxiFileResourcePackProvider extends FolderRepositorySource {
 
                 orderedPacks.forEach(file -> this.orderedPaxiPacks.add(file.getName()));
 
-                // Next we append any leftover packs with unspecified order
+                // Next we prepend any leftover packs with unspecified order
                 File[] allPacks = ((FolderRepositorySourceAccessor) this).getFolder().listFiles(PACK_FILTER);
-                List<File> leftoverPacks = allPacks == null
-                    ? Lists.newArrayList()
-                    : Arrays.stream(allPacks).filter(file -> !orderedPacks.contains(file)).collect(Collectors.toList());
-                return Stream.of(orderedPacks, leftoverPacks).flatMap(Collection::stream).toArray(File[]::new);
+                List<File> unorderedPacks = allPacks == null
+                        ? Lists.newArrayList()
+                        : Arrays.stream(allPacks).filter(file -> !orderedPacks.contains(file)).collect(Collectors.toList());
+
+                orderedPacks.forEach(file -> this.orderedPaxiPacks.add(file.getName()));
+                unorderedPacks.forEach(file -> this.unorderedPaxiPacks.add(file.getName()));
+
+                return Stream.of(unorderedPacks, orderedPacks).flatMap(Collection::stream).toArray(File[]::new);
             }
         } else {
             // If ordering file doesn't exist, load files in any order
@@ -155,10 +160,14 @@ public class PaxiFileResourcePackProvider extends FolderRepositorySource {
      * Creates the proper ResourcePack supplier for the given file.
      * Assumes that the provided file has already been validated as a properly formatted pack.
      */
-    private Supplier<PackResources> createResourcePack(File file) {
+    private Supplier<PackResources> createPackResourcesSupplier(File file) {
         return file.isDirectory()
             ? () -> new FolderPackResources(file)
             : () -> new FilePackResources(file);
+    }
+
+    public boolean hasPacks() {
+        return this.unorderedPaxiPacks.size() > 0 || this.orderedPaxiPacks.size() > 0;
     }
 
     /**

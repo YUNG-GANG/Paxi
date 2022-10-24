@@ -5,6 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "paxi.refmap.json",
   "mixins": [
+    "MixinModResourcePackCreator",
+    "MixinPackRepository"
   ],
   "injectors": {
     "defaultRequire": 1

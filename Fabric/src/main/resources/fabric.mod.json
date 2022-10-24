@@ -15,14 +15,13 @@
   "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
-    "client": [ "com.yungnickyoung.minecraft.paxi.client.PaxiClientFabric" ],
     "main": [ "com.yungnickyoung.minecraft.paxi.PaxiFabric" ]
   },
   "depends": {
     "fabricloader": ">=0.13.3",
     "minecraft": ">=1.18.2",
     "java": ">=17",
-    "yungsapi": ">=1.18.2-Fabric-2.0.7"
+    "yungsapi": ">=1.18.2-Fabric-2.2.6"
   },
   "mixins": [
     "paxi.mixins.json",

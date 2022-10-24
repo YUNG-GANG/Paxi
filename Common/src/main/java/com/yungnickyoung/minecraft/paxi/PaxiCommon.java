@@ -1,6 +1,5 @@
 package com.yungnickyoung.minecraft.paxi;
 
-import com.yungnickyoung.minecraft.paxi.services.Services;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,6 +15,5 @@ public class PaxiCommon {
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public static void init() {
-        Services.MODULES.loadModules();
     }
 }

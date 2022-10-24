@@ -7,10 +7,10 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.packs.repository.PackSource;
 
 /**
- * Custom ResourcePackSource for Paxi-loaded packs.
- * As a result, Paxi-loaded packs will be printed with a unique light purple color.
+ * Custom PackSource  for Paxi-loaded packs.
+ * As a result, Paxi-loaded packs will be printed with a unique pink color.
  */
-public interface PaxiResourcePackSource extends PackSource {
+public interface PaxiPackSource extends PackSource {
     PackSource PACK_SOURCE_PAXI = paxiText();
 
     static PackSource paxiText() {
