@@ -20,10 +20,10 @@ import java.util.stream.Stream;
 /**
  * Overwrites the vanilla method for building a list of enabled packs.
  * Should completely preserve vanilla behavior while adding Paxi packs separately in a specific order
- * as determined by the user's datapack_load_order.json.
+ * as determined by the user's load order json.
  */
 @Mixin(PackRepository.class)
-public abstract class MixinPackRepository {
+public abstract class MixinPackRepositoryForge {
     @Shadow
     private Map<String, Pack> available;
 
@@ -37,7 +37,7 @@ public abstract class MixinPackRepository {
     }
 
     @Inject(at=@At("HEAD"), method="rebuildSelected", cancellable = true)
-    private void buildEnabledProfiles(Collection<String> enabledNames, CallbackInfoReturnable<List<Pack>> cir) {
+    private void paxi_buildEnabledProfilesForge(Collection<String> enabledNames, CallbackInfoReturnable<List<Pack>> cir) {
         // Fetch Paxi pack repository source
         Optional<RepositorySource> paxiRepositorySource = this.sources.stream()
                 .filter(provider -> provider instanceof PaxiRepositorySource)
@@ -52,7 +52,7 @@ public abstract class MixinPackRepository {
         // Grab a list of all Paxi packs from the Paxi repo source, if it exists.
         // We must gather Paxi packs separately because vanilla uses a TreeMap to store all packs, so they are
         // stored lexicographically, but for Paxi we need them to be enabled in a specific order
-        // (determined by the user's datapack_load_order.json)
+        // (determined by the user's load order json)
         if (paxiRepositorySource.isPresent() && ((PaxiRepositorySource)paxiRepositorySource.get()).orderedPaxiPacks.size() > 0) {
             paxiPacks = this.getAvailablePacks(((PaxiRepositorySource)paxiRepositorySource.get()).orderedPaxiPacks).collect(Collectors.toList());
             allEnabledPacks.removeAll(paxiPacks);
