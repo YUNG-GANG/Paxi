@@ -14,13 +14,14 @@ public class PaxiForge {
         PaxiCommon.DATA_PACK_DIRECTORY = new File(PaxiCommon.BASE_PACK_DIRECTORY, "datapacks");
         PaxiCommon.RESOURCE_PACK_DIRECTORY = new File(PaxiCommon.BASE_PACK_DIRECTORY, "resourcepacks");
         PaxiCommon.DATAPACK_ORDERING_FILE = new File(PaxiCommon.BASE_PACK_DIRECTORY, "datapack_load_order.json");
+        PaxiCommon.RESOURCEPACK_ORDERING_FILE = new File(PaxiCommon.BASE_PACK_DIRECTORY, "resourcepack_load_order.json");
         PaxiCommon.init();
         FMLJavaModLoadingContext.get().getModEventBus().addListener(PaxiForge::addPaxiPackSource);
     }
 
     private static void addPaxiPackSource(AddPackFindersEvent event) {
         switch (event.getPackType()) {
-            case CLIENT_RESOURCES -> event.addRepositorySource(new PaxiRepositorySource(PaxiCommon.RESOURCE_PACK_DIRECTORY));
+            case CLIENT_RESOURCES -> event.addRepositorySource(new PaxiRepositorySource(PaxiCommon.RESOURCE_PACK_DIRECTORY, PaxiCommon.RESOURCEPACK_ORDERING_FILE));
             case SERVER_DATA -> event.addRepositorySource(new PaxiRepositorySource(PaxiCommon.DATA_PACK_DIRECTORY, PaxiCommon.DATAPACK_ORDERING_FILE));
         }
     }

@@ -51,9 +51,14 @@ public class PaxiRepositorySource extends FolderRepositorySource {
 
     @Override
     public void loadPacks(Consumer<Pack> packAdder, Pack.PackConstructor packConstructor) {
+        File folder = ((FolderRepositorySourceAccessor) this).getFolder();
+        if (folder == null) {
+            return;
+        }
+
         // Initialize directories
-        if (!((FolderRepositorySourceAccessor) this).getFolder().isDirectory()) {
-            ((FolderRepositorySourceAccessor) this).getFolder().mkdirs();
+        if (!folder.isDirectory()) {
+            folder.mkdirs();
         }
 
         // Initialize ordering file if it doesn't already exist
@@ -102,17 +107,17 @@ public class PaxiRepositorySource extends FolderRepositorySource {
             try {
                 packOrdering = JSON.loadObjectFromJsonFile(ordering.toPath(), PackOrdering.class);
             } catch (IOException | JsonIOException | JsonSyntaxException e) {
-                PaxiCommon.LOGGER.error("Error loading Paxi datapack datapack_load_order.json file: {}", e.toString());
+                PaxiCommon.LOGGER.error("Error loading Paxi ordering JSON file {}: {}", this.ordering.getName(), e.toString());
             }
 
             // Check that we loaded ordering properly
             if (packOrdering == null) {
                 // If loading the ordering failed, we default to random ordering
-                PaxiCommon.LOGGER.error("Unable to load datapack_load_order.json! Is it proper JSON formatting? Ignoring load order...");
+                PaxiCommon.LOGGER.error("Unable to load ordering JSON file {}! Is it proper JSON formatting? Ignoring load order...", this.ordering.getName());
                 return ((FolderRepositorySourceAccessor) this).getFolder().listFiles(PACK_FILTER);
             } else if (packOrdering.getOrderedPackNames() == null) {
                 // User probably mistyped the "loadOrder" key - Let them know and default to random order
-                PaxiCommon.LOGGER.error("Unable to find entry with name 'loadOrder' in datapack_load_order.json! Ignoring load order...");
+                PaxiCommon.LOGGER.error("Unable to find entry with name 'loadOrder' in load ordering JSON file {}! Ignoring load order...", this.ordering.getName());
                 return ((FolderRepositorySourceAccessor) this).getFolder().listFiles(PACK_FILTER);
             } else {
                 // If loading ordering succeeded, we first load the ordered packs
@@ -146,7 +151,7 @@ public class PaxiRepositorySource extends FolderRepositorySource {
             File packFile = new File(((FolderRepositorySourceAccessor) this).getFolder(), fileName);
 
             if (!packFile.exists()) {
-                PaxiCommon.LOGGER.error("Unable to find pack with name {} specified in datapack_load_order.json! Skipping...", fileName);
+                PaxiCommon.LOGGER.error("Unable to find pack with name {} specified in load ordering JSON file {}! Skipping...", fileName, this.ordering.getName());
             } else if ((filter == null) || filter.accept(packFile)) {
                 packFiles.add(packFile);
             }
