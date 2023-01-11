@@ -1,10 +1,10 @@
-package com.yungnickyoung.minecraft.paxi.mixin;
+package com.yungnickyoung.minecraft.paxi.mixin.client;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.yungnickyoung.minecraft.paxi.PaxiRepositorySource;
 import com.yungnickyoung.minecraft.paxi.util.IPaxiSourceProvider;
-import net.fabricmc.fabric.impl.resource.loader.ModResourcePackCreator;
+import net.minecraft.client.resources.ClientPackSource;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.RepositorySource;
@@ -30,7 +30,7 @@ import java.util.stream.Stream;
  * as determined by the user's load order json.
  */
 @Mixin(PackRepository.class)
-public abstract class MixinPackRepositoryFabric {
+public abstract class MixinClientPackRepositoryFabric {
     @Shadow
     private Map<String, Pack> available;
 
@@ -48,13 +48,13 @@ public abstract class MixinPackRepositoryFabric {
         // Paxi repo source. Will be fetched differently depending if we're loading data or resource packs.
         Optional<RepositorySource> paxiRepositorySource = Optional.empty();
 
-        // Data-pack only
-        Optional<ModResourcePackCreator> moddedPackRepositorySource = this.sources.stream()
-                .filter(provider -> provider instanceof ModResourcePackCreator)
+        // Resource-pack only
+        Optional<ClientPackSource> clientPackSource = this.sources.stream()
+                .filter(provider -> provider instanceof ClientPackSource)
                 .findFirst()
-                .map(repositorySource -> (ModResourcePackCreator) repositorySource);
-        if (moddedPackRepositorySource.isPresent()) {
-            paxiRepositorySource = Optional.of(((IPaxiSourceProvider) moddedPackRepositorySource.get()).getPaxiSource());
+                .map(repositorySource -> (ClientPackSource) repositorySource);
+        if (clientPackSource.isPresent()) {
+            paxiRepositorySource = Optional.of(((IPaxiSourceProvider) clientPackSource.get()).getPaxiSource());
         }
 
         // List of all packs to be marked as enabled

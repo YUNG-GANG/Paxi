@@ -9,7 +9,8 @@
     "MixinPackRepositoryFabric"
   ],
   "client": [
-    "client.MixinClientPackSourceFabric"
+    "client.MixinClientPackSourceFabric",
+    "client.MixinClientPackRepositoryFabric"
   ],
   "injectors": {
     "defaultRequire": 1
