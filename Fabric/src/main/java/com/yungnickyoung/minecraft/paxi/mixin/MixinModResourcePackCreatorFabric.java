@@ -27,16 +27,16 @@ public class MixinModResourcePackCreatorFabric implements IPaxiSourceProvider {
     @Inject(method = "<init>", at = @At("RETURN"))
     private void paxi_addPaxiRepositorySourceFabric(PackType type, CallbackInfo callback) {
         if (type == PackType.SERVER_DATA) {
-            this.paxiRepositorySource = new PaxiRepositorySource(PaxiCommon.DATA_PACK_DIRECTORY, PaxiCommon.DATAPACK_ORDERING_FILE);
+            this.paxiRepositorySource = new PaxiRepositorySource(PaxiCommon.DATA_PACK_DIRECTORY, type, PaxiCommon.DATAPACK_ORDERING_FILE);
         } else if (type == PackType.CLIENT_RESOURCES) {
-            this.paxiRepositorySource = new PaxiRepositorySource(PaxiCommon.RESOURCE_PACK_DIRECTORY, PaxiCommon.RESOURCEPACK_ORDERING_FILE);
+            this.paxiRepositorySource = new PaxiRepositorySource(PaxiCommon.RESOURCE_PACK_DIRECTORY, type, PaxiCommon.RESOURCEPACK_ORDERING_FILE);
         }
     }
 
     @Inject(method = "loadPacks", at = @At("RETURN"))
-    private void paxi_loadPaxiPacksFabric(Consumer<Pack> consumer, Pack.PackConstructor factory, CallbackInfo callback) {
+    private void paxi_loadPaxiPacksFabric(Consumer<Pack> consumer, CallbackInfo ci) {
         if (this.paxiRepositorySource != null && this.type == PackType.SERVER_DATA) {
-            this.paxiRepositorySource.loadPacks(consumer, factory);
+            this.paxiRepositorySource.loadPacks(consumer);
         }
     }
 

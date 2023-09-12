@@ -18,8 +18,8 @@
     "main": [ "com.yungnickyoung.minecraft.paxi.PaxiFabric" ]
   },
   "depends": {
-    "fabricloader": ">=0.13.3",
-    "minecraft": ">=1.18.2",
+    "fabricloader": ">=0.14.14",
+    "minecraft": ">=1.19.3",
     "java": ">=17",
     "yungsapi": ">=${minecraft_version}-Fabric-${yungsapi_version}"
   },
