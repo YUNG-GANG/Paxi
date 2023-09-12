@@ -18,10 +18,11 @@
     "main": [ "com.yungnickyoung.minecraft.paxi.PaxiFabric" ]
   },
   "depends": {
-    "fabricloader": ">=0.14.14",
-    "minecraft": ">=1.19.3",
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric": ">=${fabric_version}",
+    "minecraft": ">=${mc_version}",
     "java": ">=17",
-    "yungsapi": ">=${minecraft_version}-Fabric-${yungsapi_version}"
+    "yungsapi": ">=${mc_version}-Fabric-${yungsapi_version}"
   },
   "mixins": [
     "paxi.mixins.json",
