@@ -7,7 +7,9 @@ import com.google.gson.annotations.SerializedName;
 import com.yungnickyoung.minecraft.paxi.mixin.accessor.FolderRepositorySourceAccessor;
 import com.yungnickyoung.minecraft.yungsapi.io.JSON;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.FilePackResources;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.PathPackResources;
 import net.minecraft.server.packs.repository.FolderRepositorySource;
 import net.minecraft.server.packs.repository.Pack;
 
@@ -40,7 +42,7 @@ public class PaxiRepositorySource extends FolderRepositorySource {
     public List<String> unorderedPaxiPacks = new ArrayList<>();
 
     public PaxiRepositorySource(Path packsFolder, PackType packType, File ordering) {
-        super(packsFolder, packType, PaxiPackSource.PACK_SOURCE_PAXI);
+        super(packsFolder, packType, PaxiPackSource.PACK_SOURCE_PAXI, null);
         this.ordering = ordering;
     }
 
@@ -67,7 +69,7 @@ public class PaxiRepositorySource extends FolderRepositorySource {
 
         for (Path packPath : packs) {
             String packName = packPath.getFileName().toString();
-            Pack resourcePackProfile = Pack.readMetaAndCreate(
+            Pack pack = Pack.readMetaAndCreate(
                     packName,
                     Component.literal(packName),
                     true, // required
@@ -76,8 +78,8 @@ public class PaxiRepositorySource extends FolderRepositorySource {
                     Pack.Position.TOP,
                     PaxiPackSource.PACK_SOURCE_PAXI);
 
-            if (resourcePackProfile != null) {
-                packAdder.accept(resourcePackProfile);
+            if (pack != null) {
+                packAdder.accept(pack);
             }
         }
     }
@@ -156,10 +158,23 @@ public class PaxiRepositorySource extends FolderRepositorySource {
 
     /**
      * Creates the proper ResourcePack supplier for the given file.
-     * Assumes that the provided file has already been validated as a properly formatted pack.
+     * Assumes that the provided file has already been validated as a properly formatted zip or folder pack.
      */
     private Pack.ResourcesSupplier createPackResourcesSupplier(Path path) {
-        return FolderRepositorySource.detectPackResources(path, false);
+        File file = path.toFile();
+
+        // If the file is a zip, we use FilePackResources
+        if (file.isFile() && file.getName().endsWith(".zip")) {
+            return new FilePackResources.FileResourcesSupplier(path, false);
+        }
+
+        // If the file is a folder, we use PathPackResources
+        if (file.isDirectory() && (new File(file, "pack.mcmeta")).isFile()) {
+            return new PathPackResources.PathResourcesSupplier(path, false);
+        }
+
+        // If the file is neither a zip nor a folder, we throw an exception
+        throw new IllegalArgumentException("Invalid Paxi pack file: " + file);
     }
 
     private static Path[] toPaths(File[] files) {
