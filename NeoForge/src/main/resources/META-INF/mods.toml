@@ -11,7 +11,7 @@ issueTrackerURL="https://github.com/yungnickyoung/Paxi/issues"
     authors="YUNGNICKYOUNG"
     description="${mod_description}"
     logoFile="icon.png"
-    displayURL="https://www.curseforge.com/minecraft/mc-mods/paxi"
+    displayURL="https://www.curseforge.com/minecraft/mc-mods/paxi-neoforge"
 
 [[dependencies.${mod_id}]]
     modId="minecraft"
