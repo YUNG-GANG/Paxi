@@ -8,6 +8,8 @@ import com.yungnickyoung.minecraft.paxi.mixin.accessor.FolderRepositorySourceAcc
 import com.yungnickyoung.minecraft.yungsapi.io.JSON;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.FilePackResources;
+import net.minecraft.server.packs.PackLocationInfo;
+import net.minecraft.server.packs.PackSelectionConfig;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.PathPackResources;
 import net.minecraft.server.packs.repository.FolderRepositorySource;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,14 +72,15 @@ public class PaxiRepositorySource extends FolderRepositorySource {
 
         for (Path packPath : packs) {
             String packName = packPath.getFileName().toString();
+            PackLocationInfo packLocationInfo = new PackLocationInfo(packName, Component.literal(packName), PaxiPackSource.PACK_SOURCE_PAXI, Optional.empty());
+            PackSelectionConfig config = new PackSelectionConfig(true, Pack.Position.TOP, false);
+
             Pack pack = Pack.readMetaAndCreate(
-                    packName,
-                    Component.literal(packName),
-                    true, // required
+                    packLocationInfo,
                     this.createPackResourcesSupplier(packPath),
                     ((FolderRepositorySourceAccessor) this).getPackType(),
-                    Pack.Position.TOP,
-                    PaxiPackSource.PACK_SOURCE_PAXI);
+                    config
+            );
 
             if (pack != null) {
                 packAdder.accept(pack);
@@ -165,12 +169,12 @@ public class PaxiRepositorySource extends FolderRepositorySource {
 
         // If the file is a zip, we use FilePackResources
         if (file.isFile() && file.getName().endsWith(".zip")) {
-            return new FilePackResources.FileResourcesSupplier(path, false);
+            return new FilePackResources.FileResourcesSupplier(path);
         }
 
         // If the file is a folder, we use PathPackResources
         if (file.isDirectory() && (new File(file, "pack.mcmeta")).isFile()) {
-            return new PathPackResources.PathResourcesSupplier(path, false);
+            return new PathPackResources.PathResourcesSupplier(path);
         }
 
         // If the file is neither a zip nor a folder, we throw an exception
@@ -185,7 +189,7 @@ public class PaxiRepositorySource extends FolderRepositorySource {
     }
 
     public boolean hasPacks() {
-        return this.unorderedPaxiPacks.size() > 0 || this.orderedPaxiPacks.size() > 0;
+        return !this.unorderedPaxiPacks.isEmpty() || !this.orderedPaxiPacks.isEmpty();
     }
 
     /**

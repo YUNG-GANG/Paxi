@@ -1,10 +1,7 @@
 package com.yungnickyoung.minecraft.paxi.mixin;
 
-import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
-import com.yungnickyoung.minecraft.paxi.PaxiCommon;
 import com.yungnickyoung.minecraft.paxi.PaxiRepositorySource;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.RepositorySource;
@@ -15,7 +12,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,17 +59,17 @@ public abstract class MixinPackRepositoryNeoForge {
         // We must gather Paxi packs separately because vanilla uses a TreeMap to store all packs, so they are
         // stored lexicographically, but for Paxi we need them to be enabled in a specific order
         // (determined by the user's datapack_load_order.json)
-        if (paxiRepositorySource.isPresent() && ((PaxiRepositorySource)paxiRepositorySource.get()).orderedPaxiPacks.size() > 0) {
+        if (paxiRepositorySource.isPresent() && !((PaxiRepositorySource) paxiRepositorySource.get()).orderedPaxiPacks.isEmpty()) {
             paxiPacks = getAvailablePacks(((PaxiRepositorySource)paxiRepositorySource.get()).orderedPaxiPacks)
                     .flatMap(p -> Stream.concat(Stream.of(p), p.getChildren().stream()))
-                    .collect(Collectors.toList());
+                    .toList();
             allEnabledPacks.removeAll(paxiPacks);
         }
 
         // Register all Paxi packs
         for (Pack pack : paxiPacks) {
             if (pack.isRequired() && !allEnabledPacks.contains(pack)) {
-                int indexInserted = pack.getDefaultPosition().insert(allEnabledPacks, pack, Functions.identity(), false);
+                int indexInserted = pack.getDefaultPosition().insert(allEnabledPacks, pack, Pack::selectionConfig, false);
                 allEnabledPacks.addAll(indexInserted + 1, pack.getChildren());
             }
         }
@@ -75,7 +77,7 @@ public abstract class MixinPackRepositoryNeoForge {
         // Register all other packs (lexicographical order)
         for (Pack pack : this.available.values()) {
             if (pack.isRequired() && !allEnabledPacks.contains(pack)) {
-                int indexInserted = pack.getDefaultPosition().insert(allEnabledPacks, pack, Functions.identity(), false);
+                int indexInserted = pack.getDefaultPosition().insert(allEnabledPacks, pack, Pack::selectionConfig, false);
                 allEnabledPacks.addAll(indexInserted + 1, pack.getChildren());
             }
         }

@@ -11,7 +11,7 @@
     "discord": "discord.gg/rns3beq",
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/paxi-fabric"
   },
-  "license": "LGPLv3",
+  "license": "${license}",
   "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
@@ -21,7 +21,7 @@
     "fabricloader": ">=${fabric_loader_version}",
     "fabric": ">=${fabric_version}",
     "minecraft": ">=${mc_version}",
-    "java": ">=17",
+    "java": ">=${java_version}",
     "yungsapi": ">=${mc_version}-Fabric-${yungsapi_version}"
   },
   "mixins": [

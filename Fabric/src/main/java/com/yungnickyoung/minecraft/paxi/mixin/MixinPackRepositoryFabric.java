@@ -1,6 +1,5 @@
 package com.yungnickyoung.minecraft.paxi.mixin;
 
-import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.yungnickyoung.minecraft.paxi.PaxiRepositorySource;
 import com.yungnickyoung.minecraft.paxi.client.ClientMixinUtil;
@@ -86,14 +85,14 @@ public abstract class MixinPackRepositoryFabric {
         // Register all other packs (lexicographical order)
         for (Pack pack : this.available.values()) {
             if (pack.isRequired() && !allEnabledPacks.contains(pack) && !paxiPacks.contains(pack)) {
-                pack.getDefaultPosition().insert(allEnabledPacks, pack, Functions.identity(), false);
+                pack.getDefaultPosition().insert(allEnabledPacks, pack, Pack::selectionConfig, false);
             }
         }
 
         // Register all Paxi packs
         for (Pack pack : paxiPacks) {
             if (pack.isRequired() && !allEnabledPacks.contains(pack)) {
-                pack.getDefaultPosition().insert(allEnabledPacks, pack, Functions.identity(), false);
+                pack.getDefaultPosition().insert(allEnabledPacks, pack, Pack::selectionConfig, false);
             }
         }
 

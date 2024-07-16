@@ -1,6 +1,5 @@
 package com.yungnickyoung.minecraft.paxi.mixin;
 
-import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.yungnickyoung.minecraft.paxi.PaxiRepositorySource;
 import net.minecraft.server.packs.repository.Pack;
@@ -13,7 +12,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,22 +57,22 @@ public abstract class MixinPackRepositoryForge {
         // We must gather Paxi packs separately because vanilla uses a TreeMap to store all packs, so they are
         // stored lexicographically, but for Paxi we need them to be enabled in a specific order
         // (determined by the user's datapack_load_order.json)
-        if (paxiRepositorySource.isPresent() && ((PaxiRepositorySource)paxiRepositorySource.get()).orderedPaxiPacks.size() > 0) {
-            paxiPacks = this.getAvailablePacks(((PaxiRepositorySource)paxiRepositorySource.get()).orderedPaxiPacks).collect(Collectors.toList());
+        if (paxiRepositorySource.isPresent() && !((PaxiRepositorySource) paxiRepositorySource.get()).orderedPaxiPacks.isEmpty()) {
+            paxiPacks = this.getAvailablePacks(((PaxiRepositorySource)paxiRepositorySource.get()).orderedPaxiPacks).toList();
             allEnabledPacks.removeAll(paxiPacks);
         }
 
         // Register all Paxi packs
         for (Pack pack : paxiPacks) {
             if (pack.isRequired() && !allEnabledPacks.contains(pack)) {
-                pack.getDefaultPosition().insert(allEnabledPacks, pack, Functions.identity(), false);
+                pack.getDefaultPosition().insert(allEnabledPacks, pack, Pack::selectionConfig, false);
             }
         }
 
         // Register all other packs (lexicographical order)
         for (Pack pack : this.available.values()) {
             if (pack.isRequired() && !allEnabledPacks.contains(pack)) {
-                pack.getDefaultPosition().insert(allEnabledPacks, pack, Functions.identity(), false);
+                pack.getDefaultPosition().insert(allEnabledPacks, pack, Pack::selectionConfig, false);
             }
         }
 

@@ -24,8 +24,8 @@ public class MixinModResourcePackCreatorFabric implements IPaxiSourceProvider {
     @Unique
     private PaxiRepositorySource paxiRepositorySource;
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void paxi_addPaxiRepositorySourceFabric(PackType type, CallbackInfo callback) {
+    @Inject(method = "<init>(Lnet/minecraft/server/packs/PackType;Z)V", at = @At("RETURN"))
+    private void paxi_addPaxiRepositorySourceFabric(PackType type, boolean forClientDataPackManager, CallbackInfo callback) {
         if (type == PackType.SERVER_DATA) {
             this.paxiRepositorySource = new PaxiRepositorySource(PaxiCommon.DATA_PACK_DIRECTORY, type, PaxiCommon.DATAPACK_ORDERING_FILE);
         } else if (type == PackType.CLIENT_RESOURCES) {
