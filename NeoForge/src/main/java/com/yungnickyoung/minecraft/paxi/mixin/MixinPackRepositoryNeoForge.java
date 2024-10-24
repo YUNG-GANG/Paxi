@@ -2,6 +2,7 @@ package com.yungnickyoung.minecraft.paxi.mixin;
 
 import com.google.common.collect.ImmutableList;
 import com.yungnickyoung.minecraft.paxi.PaxiRepositorySource;
+import net.minecraft.Util;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.RepositorySource;
@@ -15,22 +16,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * Overwrites the vanilla method for building a list of enabled packs.
  * Should completely preserve vanilla behavior while adding Paxi packs separately in a specific order
  * as determined by the user's load order json.
+ * Priority is set to 2000 to ensure that this mixin runs after all other mixins.
  */
-@Mixin(PackRepository.class)
+@Mixin(value = PackRepository.class, priority = 2000)
 public abstract class MixinPackRepositoryNeoForge {
-    @Shadow
-    private Map<String, Pack> available;
-
     @Final
     @Shadow
     private Set<RepositorySource> sources;
@@ -40,48 +37,35 @@ public abstract class MixinPackRepositoryNeoForge {
         throw new AssertionError();
     }
 
-    @Inject(at=@At("HEAD"), method="rebuildSelected", cancellable = true)
-    private void paxi_buildEnabledProfilesForge(Collection<String> enabledNames, CallbackInfoReturnable<List<Pack>> cir) {
+    @Inject(at=@At("RETURN"), method="rebuildSelected", cancellable = true)
+    private void paxi_buildEnabledProfilesNeoForge(Collection<String> enabledNames, CallbackInfoReturnable<List<Pack>> cir) {
+        List<Pack> sortedEnabledPacks = cir.getReturnValue().stream().collect(Util.toMutableList());
+
         // Fetch Paxi pack repository source
         Optional<RepositorySource> paxiRepositorySource = this.sources.stream()
                 .filter(provider -> provider instanceof PaxiRepositorySource)
                 .findFirst();
 
-        // List of all packs to be marked as enabled
-        List<Pack> allEnabledPacks = getAvailablePacks(enabledNames)
-                .flatMap(p -> Stream.concat(Stream.of(p), p.getChildren().stream()))
-                .collect(Collectors.toList());
-
-        // List of all packs loaded by Paxi
-        List<Pack> paxiPacks = new ArrayList<>();
-
-        // Grab a list of all Paxi packs from the Paxi repo source, if it exists.
+        // Grab a list of all ordered Paxi packs from the Paxi repo source, if it exists.
         // We must gather Paxi packs separately because vanilla uses a TreeMap to store all packs, so they are
         // stored lexicographically, but for Paxi we need them to be enabled in a specific order
-        // (determined by the user's datapack_load_order.json)
+        // (determined by the user's load order JSON)
+        List<Pack> orderedPaxiPacks = new ArrayList<>();
         if (paxiRepositorySource.isPresent() && !((PaxiRepositorySource) paxiRepositorySource.get()).orderedPaxiPacks.isEmpty()) {
-            paxiPacks = getAvailablePacks(((PaxiRepositorySource)paxiRepositorySource.get()).orderedPaxiPacks)
+            orderedPaxiPacks = getAvailablePacks(((PaxiRepositorySource) paxiRepositorySource.get()).orderedPaxiPacks)
                     .flatMap(p -> Stream.concat(Stream.of(p), p.getChildren().stream()))
                     .toList();
-            allEnabledPacks.removeAll(paxiPacks);
+            sortedEnabledPacks.removeAll(orderedPaxiPacks); // Ordered packs should always load after all other packs, so remove them for now
         }
 
-        // Register all Paxi packs
-        for (Pack pack : paxiPacks) {
-            if (pack.isRequired() && !allEnabledPacks.contains(pack)) {
-                int indexInserted = pack.getDefaultPosition().insert(allEnabledPacks, pack, Pack::selectionConfig, false);
-                allEnabledPacks.addAll(indexInserted + 1, pack.getChildren());
+        // Add all ordered Paxi packs
+        for (Pack pack : orderedPaxiPacks) {
+            if (pack.isRequired() && !sortedEnabledPacks.contains(pack)) {
+                int indexInserted = pack.getDefaultPosition().insert(sortedEnabledPacks, pack, Pack::selectionConfig, false);
+                sortedEnabledPacks.addAll(indexInserted + 1, pack.getChildren());
             }
         }
 
-        // Register all other packs (lexicographical order)
-        for (Pack pack : this.available.values()) {
-            if (pack.isRequired() && !allEnabledPacks.contains(pack)) {
-                int indexInserted = pack.getDefaultPosition().insert(allEnabledPacks, pack, Pack::selectionConfig, false);
-                allEnabledPacks.addAll(indexInserted + 1, pack.getChildren());
-            }
-        }
-
-		cir.setReturnValue(ImmutableList.copyOf(allEnabledPacks));
+		cir.setReturnValue(ImmutableList.copyOf(sortedEnabledPacks));
     }
 }

@@ -15,6 +15,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.Consumer;
 
+/**
+ * Attaches a PaxiRepositorySource to the ClientPackSource.
+ */
 @Mixin(BuiltInPackSource.class)
 public class MixinClientPackSourceFabric implements IPaxiSourceProvider {
     @Unique
@@ -22,7 +25,7 @@ public class MixinClientPackSourceFabric implements IPaxiSourceProvider {
 
     @Inject(method = "loadPacks", at = @At("RETURN"))
     private void paxi_loadPaxiPacksClientFabric(Consumer<Pack> consumer, CallbackInfo callback) {
-        if (thisIsClientPackSource(this)) {
+        if (isClientPackSource(this)) {
             if (this.paxiRepositorySource == null) {
                 this.paxiRepositorySource = new PaxiRepositorySource(PaxiCommon.RESOURCE_PACK_DIRECTORY, PackType.CLIENT_RESOURCES, PaxiCommon.RESOURCEPACK_ORDERING_FILE);
             }
@@ -36,7 +39,7 @@ public class MixinClientPackSourceFabric implements IPaxiSourceProvider {
     }
 
     @Unique
-    private boolean thisIsClientPackSource(Object obj) {
+    private boolean isClientPackSource(Object obj) {
         return obj instanceof ClientPackSource;
     }
 }

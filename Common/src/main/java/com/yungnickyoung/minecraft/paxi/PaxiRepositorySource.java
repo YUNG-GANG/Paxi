@@ -14,6 +14,7 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.PathPackResources;
 import net.minecraft.server.packs.repository.FolderRepositorySource;
 import net.minecraft.server.packs.repository.Pack;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -40,17 +41,17 @@ public class PaxiRepositorySource extends FolderRepositorySource {
         return isValidPackZip || isValidPackFolder;
     };
 
-    private File ordering;
+    private final File orderingFile;
     public List<String> orderedPaxiPacks = new ArrayList<>();
     public List<String> unorderedPaxiPacks = new ArrayList<>();
 
-    public PaxiRepositorySource(Path packsFolder, PackType packType, File ordering) {
+    public PaxiRepositorySource(Path packsFolder, PackType packType, File orderingFile) {
         super(packsFolder, packType, PaxiPackSource.PACK_SOURCE_PAXI, null);
-        this.ordering = ordering;
+        this.orderingFile = orderingFile;
     }
 
     @Override
-    public void loadPacks(Consumer<Pack> packAdder) {
+    public void loadPacks(@NotNull Consumer<Pack> packAdder) {
         // Initialize directories
         File folder = ((FolderRepositorySourceAccessor) this).getFolder().toFile();
         if (!folder.isDirectory()) {
@@ -58,10 +59,10 @@ public class PaxiRepositorySource extends FolderRepositorySource {
         }
 
         // Initialize ordering file if it doesn't already exist
-        if (ordering != null && !ordering.isFile()) {
+        if (orderingFile != null && !orderingFile.isFile()) {
             PackOrdering emptyPackOrdering = new PackOrdering(new String[]{});
             try {
-                JSON.createJsonFileFromObject(ordering.toPath(), emptyPackOrdering);
+                JSON.createJsonFileFromObject(orderingFile.toPath(), emptyPackOrdering);
             } catch (IOException e) {
                 PaxiCommon.LOGGER.error("Unable to create default pack ordering file! This shouldn't happen.");
                 PaxiCommon.LOGGER.error(e.toString());
@@ -73,13 +74,13 @@ public class PaxiRepositorySource extends FolderRepositorySource {
         for (Path packPath : packs) {
             String packName = packPath.getFileName().toString();
             PackLocationInfo packLocationInfo = new PackLocationInfo(packName, Component.literal(packName), PaxiPackSource.PACK_SOURCE_PAXI, Optional.empty());
-            PackSelectionConfig config = new PackSelectionConfig(true, Pack.Position.TOP, false);
+            PackSelectionConfig packSelectionConfig = new PackSelectionConfig(true, Pack.Position.TOP, false);
 
             Pack pack = Pack.readMetaAndCreate(
                     packLocationInfo,
                     this.createPackResourcesSupplier(packPath),
                     ((FolderRepositorySourceAccessor) this).getPackType(),
-                    config
+                    packSelectionConfig
             );
 
             if (pack != null) {
@@ -97,25 +98,29 @@ public class PaxiRepositorySource extends FolderRepositorySource {
      * If this pack provider does not have an ordering File defined, the returned array's items have no guaranteed order.
      */
     private Path[] loadPacksFromFiles() {
-        if (this.ordering != null) {
+        // Reset ordered and unordered pack lists
+        this.orderedPaxiPacks.clear();
+        this.unorderedPaxiPacks.clear();
+
+        if (this.orderingFile != null) {
             // If ordering file exists, load any specified files in the specific order
             PackOrdering packOrdering = null;
             try {
-                packOrdering = JSON.loadObjectFromJsonFile(ordering.toPath(), PackOrdering.class);
+                packOrdering = JSON.loadObjectFromJsonFile(orderingFile.toPath(), PackOrdering.class);
             } catch (IOException | JsonIOException | JsonSyntaxException e) {
-                PaxiCommon.LOGGER.error("Error loading Paxi ordering JSON file {}: {}", this.ordering.getName(), e.toString());
+                PaxiCommon.LOGGER.error("Error loading Paxi ordering JSON file {}: {}", this.orderingFile.getName(), e.toString());
             }
 
             // Check that we loaded ordering properly
             if (packOrdering == null) {
                 // If loading the ordering failed, we default to random ordering
-                PaxiCommon.LOGGER.error("Unable to load ordering JSON file {}! Is it proper JSON formatting? Ignoring load order...", this.ordering.getName());
+                PaxiCommon.LOGGER.error("Unable to load ordering JSON file {}! Is it proper JSON formatting? Ignoring load order...", this.orderingFile.getName());
                 File[] files = ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
                 return toPaths(files);
 
             } else if (packOrdering.getOrderedPackNames() == null) {
                 // User probably mistyped the "loadOrder" key - Let them know and default to random order
-                PaxiCommon.LOGGER.error("Unable to find entry with name 'loadOrder' in load ordering JSON file {}! Ignoring load order...", this.ordering.getName());
+                PaxiCommon.LOGGER.error("Unable to find entry with name 'loadOrder' in load ordering JSON file {}! Ignoring load order...", this.orderingFile.getName());
                 File[] files = ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
                 return toPaths(files);
             } else {
@@ -152,7 +157,7 @@ public class PaxiRepositorySource extends FolderRepositorySource {
             File packFile = new File(((FolderRepositorySourceAccessor) this).getFolder().toFile().toString(), fileName);
 
             if (!packFile.exists()) {
-                PaxiCommon.LOGGER.error("Unable to find pack with name {} specified in load ordering JSON file {}! Skipping...", fileName, this.ordering.getName());
+                PaxiCommon.LOGGER.error("Unable to find pack with name {} specified in load ordering JSON file {}! Skipping...", fileName, this.orderingFile.getName());
             } else if ((filter == null) || filter.accept(packFile)) {
                 packFiles.add(packFile);
             }
