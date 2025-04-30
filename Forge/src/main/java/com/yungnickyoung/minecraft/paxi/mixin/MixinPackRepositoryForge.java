@@ -1,6 +1,7 @@
 package com.yungnickyoung.minecraft.paxi.mixin;
 
 import com.google.common.collect.ImmutableList;
+import com.yungnickyoung.minecraft.paxi.PaxiCommon;
 import com.yungnickyoung.minecraft.paxi.PaxiRepositorySource;
 import net.minecraft.Util;
 import net.minecraft.server.packs.repository.Pack;
@@ -15,9 +16,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 /**
@@ -35,6 +39,38 @@ public abstract class MixinPackRepositoryForge {
     @Shadow
     private Stream<Pack> getAvailablePacks(Collection<String> names) {
         throw new AssertionError();
+    }
+
+    @Inject(at = @At("RETURN"), method = "discoverAvailable", cancellable = true)
+    private void paxi_removeDuplicatesInAvailableList(CallbackInfoReturnable<Map<String, Pack>> cir) {
+        // Fetch Paxi pack repository source
+        Optional<RepositorySource> repositorySource = this.sources.stream()
+                .filter(provider -> provider instanceof PaxiRepositorySource)
+                .findFirst();
+        if (repositorySource.isEmpty()) {
+            PaxiCommon.LOGGER.error("Unable to find Paxi repository source when removing duplicates from available packs. You may see duplicate pack entries in your list of available packs on the Resource Packs screen.");
+            return;
+        }
+
+        // Get a list of all ordered Paxi packs
+        PaxiRepositorySource paxiRepositorySource = (PaxiRepositorySource) repositorySource.get();
+        List<String> orderedPaxiPacks = paxiRepositorySource.orderedPaxiPacks;
+
+        // Remove duplicates from the available packs list and return the new list
+        Map<String, Pack> availablePacks = new TreeMap<>(cir.getReturnValue());
+        Set<String> keysToRemove = new HashSet<>();
+        for (String vanillaPackId : availablePacks.keySet()) {
+            // Vanilla pack IDs are stored as "file/" + fileName,
+            // but Paxi packs are stored as just the fileName.
+            for (String paxiPackId : orderedPaxiPacks) {
+                if (vanillaPackId.equals("file/" + paxiPackId)) {
+                    keysToRemove.add(vanillaPackId);
+                    break;
+                }
+            }
+        }
+        keysToRemove.forEach(availablePacks::remove);
+        cir.setReturnValue(availablePacks);
     }
 
     @Inject(at = @At("RETURN"), method = "rebuildSelected", cancellable = true)

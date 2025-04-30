@@ -15,7 +15,8 @@
   "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [ "com.yungnickyoung.minecraft.paxi.PaxiFabric" ]
+    "main": [ "com.yungnickyoung.minecraft.paxi.PaxiFabric" ],
+    "modmenu": [ "com.yungnickyoung.minecraft.paxi.config.gui.PaxiModMenu" ]
   },
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",

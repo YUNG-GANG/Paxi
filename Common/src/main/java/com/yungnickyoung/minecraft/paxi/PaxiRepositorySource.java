@@ -15,6 +15,7 @@ import net.minecraft.server.packs.PathPackResources;
 import net.minecraft.server.packs.repository.FolderRepositorySource;
 import net.minecraft.server.packs.repository.Pack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -69,7 +70,7 @@ public class PaxiRepositorySource extends FolderRepositorySource {
             }
         }
 
-        Path[] packs = loadPacksFromFiles();
+        Path[] packs = toPaths(loadPacksFromFiles());
 
         for (Path packPath : packs) {
             String packName = packPath.getFileName().toString();
@@ -92,12 +93,12 @@ public class PaxiRepositorySource extends FolderRepositorySource {
     /**
      * Builds an array of Files corresponding to the valid packs in this object's packsFolder.
      * <p>
-     * If this pack provider has an ordering File defined, the returned array will contained the specified Files
-     * in the proper order, with any unspecified Files appended to the end of the List.
+     * If this pack provider has an orderingFile defined, the returned array will contain the specified Files
+     * in the proper order, with any unordered Files prepended to the start of the List.
      * <p>
      * If this pack provider does not have an ordering File defined, the returned array's items have no guaranteed order.
      */
-    private Path[] loadPacksFromFiles() {
+    private File[] loadPacksFromFiles() {
         // Reset ordered and unordered pack lists
         this.orderedPaxiPacks.clear();
         this.unorderedPaxiPacks.clear();
@@ -115,14 +116,12 @@ public class PaxiRepositorySource extends FolderRepositorySource {
             if (packOrdering == null) {
                 // If loading the ordering failed, we default to random ordering
                 PaxiCommon.LOGGER.error("Unable to load ordering JSON file {}! Is it proper JSON formatting? Ignoring load order...", this.orderingFile.getName());
-                File[] files = ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
-                return toPaths(files);
+                return ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
 
             } else if (packOrdering.getOrderedPackNames() == null) {
                 // User probably mistyped the "loadOrder" key - Let them know and default to random order
                 PaxiCommon.LOGGER.error("Unable to find entry with name 'loadOrder' in load ordering JSON file {}! Ignoring load order...", this.orderingFile.getName());
-                File[] files = ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
-                return toPaths(files);
+                return ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
             } else {
                 // If loading ordering succeeded, we first load the ordered packs
                 List<File> orderedPacks = filesFromNames(packOrdering.getOrderedPackNames(), PACK_FILTER);
@@ -136,13 +135,11 @@ public class PaxiRepositorySource extends FolderRepositorySource {
                 orderedPacks.forEach(file -> this.orderedPaxiPacks.add(file.getName()));
                 unorderedPacks.forEach(file -> this.unorderedPaxiPacks.add(file.getName()));
 
-                File[] files = Stream.of(unorderedPacks, orderedPacks).flatMap(Collection::stream).toArray(File[]::new);
-                return toPaths(files);
+                return Stream.of(unorderedPacks, orderedPacks).flatMap(Collection::stream).toArray(File[]::new);
             }
         } else {
             // If ordering file doesn't exist, load files in any order
-            File[] files = ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
-            return toPaths(files);
+            return ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
         }
     }
 
@@ -150,15 +147,27 @@ public class PaxiRepositorySource extends FolderRepositorySource {
      * Creates a List of File objects created from the provided file names.
      * Each File must pass the provided filter to be added to the List.
      */
-    private List<File> filesFromNames(String[] packFileNames, FileFilter filter) {
+    private List<File> filesFromNames(String[] packFileNames, @Nullable FileFilter filter) {
         ArrayList<File> packFiles = new ArrayList<>();
 
         for (String fileName : packFileNames) {
-            File packFile = new File(((FolderRepositorySourceAccessor) this).getFolder().toFile().toString(), fileName);
+            // First, check for the pack as-is, using the base Minecraft folder as the base directory
+            File packFile = new File(PaxiCommon.BASE_GAME_DIRECTORY, fileName);
 
             if (!packFile.exists()) {
+                // If the pack doesn't exist, check for it in the Paxi datapacks/resourcepacks directory.
+                // This is the base Paxi behavior.
+                packFile = new File(((FolderRepositorySourceAccessor) this).getFolder().toFile().toString(), fileName);
+            }
+
+            if (!packFile.exists()) {
+                // If the pack file still doesn't exist, log an error and skip it
                 PaxiCommon.LOGGER.error("Unable to find pack with name {} specified in load ordering JSON file {}! Skipping...", fileName, this.orderingFile.getName());
-            } else if ((filter == null) || filter.accept(packFile)) {
+            } else if (filter != null && !filter.accept(packFile)) {
+                // If the pack file doesn't pass the filter, log an error and skip it
+                PaxiCommon.LOGGER.error("Attempted to load pack {} but it is not a valid pack format! It may be missing a pack.mcmeta file. Skipping...", fileName);
+            } else {
+                // If the pack file exists and passes the filter, add it to the list
                 packFiles.add(packFile);
             }
         }

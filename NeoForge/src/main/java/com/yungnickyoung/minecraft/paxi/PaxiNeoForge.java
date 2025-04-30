@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 @Mod(PaxiCommon.MOD_ID)
 public class PaxiNeoForge {
     public PaxiNeoForge(IEventBus eventBus) {
+        PaxiCommon.BASE_GAME_DIRECTORY = FMLPaths.GAMEDIR.get().toFile();
         PaxiCommon.BASE_PACK_DIRECTORY = new File(FMLPaths.CONFIGDIR.get().toString(), "paxi");
         PaxiCommon.DATA_PACK_DIRECTORY = Paths.get(PaxiCommon.BASE_PACK_DIRECTORY.toString(), "datapacks");
         PaxiCommon.RESOURCE_PACK_DIRECTORY = Paths.get(PaxiCommon.BASE_PACK_DIRECTORY.toString(), "resourcepacks");
@@ -27,5 +28,4 @@ public class PaxiNeoForge {
             case SERVER_DATA -> event.addRepositorySource(new PaxiRepositorySource(PaxiCommon.DATA_PACK_DIRECTORY, PackType.SERVER_DATA, PaxiCommon.DATAPACK_ORDERING_FILE));
         }
     }
-
 }
