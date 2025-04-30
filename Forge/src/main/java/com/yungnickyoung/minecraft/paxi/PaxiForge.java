@@ -1,5 +1,6 @@
 package com.yungnickyoung.minecraft.paxi;
 
+import com.yungnickyoung.minecraft.paxi.module.ConfigModuleForge;
 import net.minecraft.server.packs.PackType;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -19,6 +20,7 @@ public class PaxiForge {
         PaxiCommon.DATAPACK_ORDERING_FILE = new File(PaxiCommon.BASE_PACK_DIRECTORY, "datapack_load_order.json");
         PaxiCommon.RESOURCEPACK_ORDERING_FILE = new File(PaxiCommon.BASE_PACK_DIRECTORY, "resourcepack_load_order.json");
         PaxiCommon.init();
+        ConfigModuleForge.init();
         FMLJavaModLoadingContext.get().getModEventBus().addListener(PaxiForge::addPaxiPackSource);
     }
 

@@ -1,7 +1,9 @@
 package com.yungnickyoung.minecraft.paxi;
 
+import com.yungnickyoung.minecraft.paxi.module.ConfigModuleNeoForge;
 import net.minecraft.server.packs.PackType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
@@ -11,7 +13,7 @@ import java.nio.file.Paths;
 
 @Mod(PaxiCommon.MOD_ID)
 public class PaxiNeoForge {
-    public PaxiNeoForge(IEventBus eventBus) {
+    public PaxiNeoForge(IEventBus eventBus, ModContainer container) {
         PaxiCommon.BASE_GAME_DIRECTORY = FMLPaths.GAMEDIR.get().toFile();
         PaxiCommon.BASE_PACK_DIRECTORY = new File(FMLPaths.CONFIGDIR.get().toString(), "paxi");
         PaxiCommon.DATA_PACK_DIRECTORY = Paths.get(PaxiCommon.BASE_PACK_DIRECTORY.toString(), "datapacks");
@@ -19,6 +21,7 @@ public class PaxiNeoForge {
         PaxiCommon.DATAPACK_ORDERING_FILE = new File(PaxiCommon.BASE_PACK_DIRECTORY, "datapack_load_order.json");
         PaxiCommon.RESOURCEPACK_ORDERING_FILE = new File(PaxiCommon.BASE_PACK_DIRECTORY, "resourcepack_load_order.json");
         PaxiCommon.init();
+        ConfigModuleNeoForge.init(eventBus, container);
         eventBus.addListener(PaxiNeoForge::addPaxiPackSource);
     }
 

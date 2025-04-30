@@ -1,6 +1,5 @@
 package com.yungnickyoung.minecraft.paxi;
 
-import com.google.common.collect.Lists;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
@@ -27,7 +26,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -60,19 +58,19 @@ public class PaxiRepositorySource extends FolderRepositorySource {
         }
 
         // Initialize ordering file if it doesn't already exist
-        if (orderingFile != null && !orderingFile.isFile()) {
+        if (this.orderingFile != null && !this.orderingFile.isFile()) {
             PackOrdering emptyPackOrdering = new PackOrdering(new String[]{});
             try {
-                JSON.createJsonFileFromObject(orderingFile.toPath(), emptyPackOrdering);
+                JSON.createJsonFileFromObject(this.orderingFile.toPath(), emptyPackOrdering);
             } catch (IOException e) {
                 PaxiCommon.LOGGER.error("Unable to create default pack ordering file! This shouldn't happen.");
                 PaxiCommon.LOGGER.error(e.toString());
             }
         }
 
-        Path[] packs = toPaths(loadPacksFromFiles());
+        List<Path> packPathsToLoad = toPaths(loadPacksFromFiles());
 
-        for (Path packPath : packs) {
+        for (Path packPath : packPathsToLoad) {
             String packName = packPath.getFileName().toString();
             PackLocationInfo packLocationInfo = new PackLocationInfo(packName, Component.literal(packName), PaxiPackSource.PACK_SOURCE_PAXI, Optional.empty());
             PackSelectionConfig packSelectionConfig = new PackSelectionConfig(true, Pack.Position.TOP, false);
@@ -93,21 +91,44 @@ public class PaxiRepositorySource extends FolderRepositorySource {
     /**
      * Builds an array of Files corresponding to the valid packs in this object's packsFolder.
      * <p>
-     * If this pack provider has an orderingFile defined, the returned array will contain the specified Files
-     * in the proper order, with any unordered Files prepended to the start of the List.
+     * If this repository source has an orderingFile defined, the returned list will contain the specified Files
+     * in the proper order, with any unordered Files prepended to the start of the list.
      * <p>
-     * If this pack provider does not have an ordering File defined, the returned array's items have no guaranteed order.
+     * If this repository source does not have an orderingFile defined, the returned list's items have no guaranteed order.
      */
-    private File[] loadPacksFromFiles() {
+    private List<File> loadPacksFromFiles() {
         // Reset ordered and unordered pack lists
         this.orderedPaxiPacks.clear();
         this.unorderedPaxiPacks.clear();
+
+        // Begin creating a list of all Paxi packs (excluding external packs referenced in the ordering json)
+        List<File> allPacks = new ArrayList<>();
+
+        // NEW FEATURE - add files in the base 'datapacks' folder (i.e. <minecraft>/datapacks)
+        // This is to support CurseForge's new data pack system
+        if (PaxiCommon.CONFIG.loadFromBaseDatapacksDirectory && ((FolderRepositorySourceAccessor) this).getPackType() == PackType.SERVER_DATA) {
+            File basePacksFolder = new File(PaxiCommon.BASE_GAME_DIRECTORY, "datapacks");
+            if (!basePacksFolder.exists()) {
+                basePacksFolder.mkdirs();
+            }
+            File[] basePacks = basePacksFolder.listFiles(PACK_FILTER);
+            if (basePacks != null) {
+                allPacks.addAll(Arrays.asList(basePacks));
+            }
+        }
+
+        // Next we add packs in the Paxi folder (i.e. <minecraft>/config/paxi/datapacks)
+        // This is the classic Paxi behavior
+        File[] paxiPacks = ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
+        if (paxiPacks != null) {
+            allPacks.addAll(Arrays.asList(paxiPacks));
+        }
 
         if (this.orderingFile != null) {
             // If ordering file exists, load any specified files in the specific order
             PackOrdering packOrdering = null;
             try {
-                packOrdering = JSON.loadObjectFromJsonFile(orderingFile.toPath(), PackOrdering.class);
+                packOrdering = JSON.loadObjectFromJsonFile(this.orderingFile.toPath(), PackOrdering.class);
             } catch (IOException | JsonIOException | JsonSyntaxException e) {
                 PaxiCommon.LOGGER.error("Error loading Paxi ordering JSON file {}: {}", this.orderingFile.getName(), e.toString());
             }
@@ -116,30 +137,25 @@ public class PaxiRepositorySource extends FolderRepositorySource {
             if (packOrdering == null) {
                 // If loading the ordering failed, we default to random ordering
                 PaxiCommon.LOGGER.error("Unable to load ordering JSON file {}! Is it proper JSON formatting? Ignoring load order...", this.orderingFile.getName());
-                return ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
-
+                allPacks.forEach(file -> this.unorderedPaxiPacks.add(file.getName()));
+                return allPacks;
             } else if (packOrdering.getOrderedPackNames() == null) {
                 // User probably mistyped the "loadOrder" key - Let them know and default to random order
                 PaxiCommon.LOGGER.error("Unable to find entry with name 'loadOrder' in load ordering JSON file {}! Ignoring load order...", this.orderingFile.getName());
-                return ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
+                allPacks.forEach(file -> this.unorderedPaxiPacks.add(file.getName()));
+                return allPacks;
             } else {
-                // If loading ordering succeeded, we first load the ordered packs
+                // If loading ordering succeeded, we add the ordered packs
                 List<File> orderedPacks = filesFromNames(packOrdering.getOrderedPackNames(), PACK_FILTER);
-
-                // Next we prepend any leftover packs with unspecified order
-                File[] allPacks = ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
-                List<File> unorderedPacks = allPacks == null
-                        ? Lists.newArrayList()
-                        : Arrays.stream(allPacks).filter(file -> !orderedPacks.contains(file)).collect(Collectors.toList());
-
+                List<File> unorderedPacks = allPacks.stream().filter(file -> !orderedPacks.contains(file)).toList();
                 orderedPacks.forEach(file -> this.orderedPaxiPacks.add(file.getName()));
                 unorderedPacks.forEach(file -> this.unorderedPaxiPacks.add(file.getName()));
-
-                return Stream.of(unorderedPacks, orderedPacks).flatMap(Collection::stream).toArray(File[]::new);
+                return Stream.of(unorderedPacks, orderedPacks).flatMap(Collection::stream).toList();
             }
         } else {
             // If ordering file doesn't exist, load files in any order
-            return ((FolderRepositorySourceAccessor) this).getFolder().toFile().listFiles(PACK_FILTER);
+            allPacks.forEach(file -> this.unorderedPaxiPacks.add(file.getName()));
+            return allPacks;
         }
     }
 
@@ -195,11 +211,8 @@ public class PaxiRepositorySource extends FolderRepositorySource {
         throw new IllegalArgumentException("Invalid Paxi pack file: " + file);
     }
 
-    private static Path[] toPaths(File[] files) {
-        if (files == null) {
-            return new Path[]{};
-        }
-        return Arrays.stream(files).map(File::toPath).toArray(Path[]::new);
+    private static List<Path> toPaths(List<File> files) {
+        return files.stream().map(File::toPath).toList();
     }
 
     public boolean hasPacks() {
