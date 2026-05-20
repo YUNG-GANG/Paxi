@@ -2,18 +2,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
-        exclusiveContent {
-            forRepository {
-                maven {
-                    name = 'Fabric'
-                    url = uri("https://maven.fabricmc.net")
-                }
-            }
-            filter {
-                includeGroup("net.fabricmc")
-                includeGroup("fabric-loom")
-            }
-        }
+        maven { url "https://maven.fabricmc.net/" }
         exclusiveContent {
             forRepository {
                 maven {
@@ -56,4 +45,4 @@ plugins {
 }
 
 rootProject.name = 'paxi'
-include("Common", "Fabric", "Forge", "NeoForge")
+include("Common", "Fabric", "NeoForge")
