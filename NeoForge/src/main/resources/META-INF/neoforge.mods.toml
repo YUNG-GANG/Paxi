@@ -25,7 +25,7 @@ issueTrackerURL="https://github.com/yungnickyoung/Paxi/issues"
 
 [[dependencies.${mod_id}]]
     modId="yungsapi"
-    versionRange="[${mc_version}-NeoForge-${yungsapi_version},)"
+    versionRange="[${mc_version}-${yungsapi_version},)"
     type="required"
     ordering="NONE"
     side="BOTH"

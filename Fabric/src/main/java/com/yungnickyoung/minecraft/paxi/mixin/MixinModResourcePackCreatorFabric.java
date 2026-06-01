@@ -1,11 +1,10 @@
 package com.yungnickyoung.minecraft.paxi.mixin;
 
+import java.util.function.Consumer;
+
 import com.yungnickyoung.minecraft.paxi.PaxiCommon;
 import com.yungnickyoung.minecraft.paxi.PaxiRepositorySource;
 import com.yungnickyoung.minecraft.paxi.util.IPaxiSourceProvider;
-import net.fabricmc.fabric.impl.resource.loader.ModResourcePackCreator;
-import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.repository.Pack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,7 +13,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.function.Consumer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.Pack;
+
+import net.fabricmc.fabric.impl.resource.pack.ModResourcePackCreator;
 
 @Mixin(ModResourcePackCreator.class)
 public class MixinModResourcePackCreatorFabric implements IPaxiSourceProvider {

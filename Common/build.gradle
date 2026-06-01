@@ -1,9 +1,7 @@
 plugins {
     id 'multiloader-common'
-    id 'org.spongepowered.gradle.vanilla' version '0.2.1-SNAPSHOT'
+    id 'org.spongepowered.gradle.vanilla' version '0.3.2'
 }
-
-def useLocalYungsApi = findProject(':yungsapi') != null
 
 minecraft {
     version(mc_version)
@@ -14,12 +12,8 @@ minecraft {
 }
 
 dependencies {
-    compileOnly group:'org.spongepowered', name:'mixin', version:'0.8.5'
-    if (useLocalYungsApi) {
-        compileOnly files("libs/YungsApi-${mc_version}-Common-${yungsapi_version}.jar")
-    } else {
-        compileOnly("com.yungnickyoung.minecraft.yungsapi:YungsApi:${mc_version}-Common-${yungsapi_version}")
-    }
+    compileOnly group:'org.spongepowered', name:'mixin', version:'0.8.7'
+    compileOnly("com.yungnickyoung.minecraft.yungsapi:YungsApi-Common:${mc_version}-${yungsapi_version}")
 }
 
 configurations {
@@ -49,4 +43,14 @@ artifacts {
     commonJava sourceSets.main.java.sourceDirectories.singleFile
     commonResources sourceSets.main.resources.sourceDirectories.singleFile
     commonGeneratedResources sourceSets.generated.resources.sourceDirectories.singleFile
+}
+
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'common')
+        }
+    }
 }

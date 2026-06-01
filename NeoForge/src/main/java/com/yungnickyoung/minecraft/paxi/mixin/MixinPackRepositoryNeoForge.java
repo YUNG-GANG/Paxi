@@ -1,19 +1,5 @@
 package com.yungnickyoung.minecraft.paxi.mixin;
 
-import com.google.common.collect.ImmutableList;
-import com.yungnickyoung.minecraft.paxi.PaxiCommon;
-import com.yungnickyoung.minecraft.paxi.PaxiRepositorySource;
-import net.minecraft.Util;
-import net.minecraft.server.packs.repository.Pack;
-import net.minecraft.server.packs.repository.PackRepository;
-import net.minecraft.server.packs.repository.RepositorySource;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -23,6 +9,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import com.google.common.collect.ImmutableList;
+import com.yungnickyoung.minecraft.paxi.PaxiCommon;
+import com.yungnickyoung.minecraft.paxi.PaxiRepositorySource;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.server.packs.repository.RepositorySource;
+import net.minecraft.util.Util;
 
 /**
  * Overwrites the vanilla method for building a list of enabled packs.

@@ -27,15 +27,6 @@ repositories {
         }
         filter { includeGroupAndSubgroups("org.spongepowered") }
     }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'ParchmentMC'
-                url = 'https://maven.parchmentmc.org/'
-            }
-        }
-        filter { includeGroup('org.parchmentmc.data') }
-    }
     maven {
         url "https://www.cursemaven.com"
         content {
@@ -49,19 +40,6 @@ repositories {
     flatDir {
         dirs 'libs'
     }
-}
-
-// Declare capabilities on the outgoing configurations.
-// Read more about capabilities here: https://docs.gradle.org/current/userguide/component_capabilities.html#sec:declaring-additional-capabilities-for-a-local-component
-['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
-    configurations."$variant".outgoing {
-        capability("$group:${base.archivesName.get()}:$version")
-        capability("$group:$mod_id-${project.name}-${mc_version}:$version")
-        capability("$group:$mod_id:$version")
-    }
-//    publishing.publications.configureEach {
-//        suppressPomMetadataWarningsFor(variant)
-//    }
 }
 
 sourcesJar {

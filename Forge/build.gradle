@@ -1,7 +1,6 @@
 plugins {
     id 'multiloader-loader'
-    id 'net.minecraftforge.gradle' version '[6.0.25,6.2)'
-    id 'org.spongepowered.mixin'
+    id 'net.minecraftforge.gradle' version '[7.0.23,8.0)'
     id 'net.darkhax.curseforgegradle'
     id 'com.modrinth.minotaur'
 }
@@ -17,14 +16,6 @@ configurations.all {
 minecraft {
     mappings channel: 'official', version: mc_version
 
-    // Tell FG to not automtically create the reobf tasks, as we now use Official mappings at runtime, If you don't use them at dev time then you'll have to fix your reobf yourself.
-    reobf = false
-
-    // This property allows configuring Gradle's ProcessResources task(s) to run on IDE output locations before launching the game.
-    // It is REQUIRED to be set to true for this template to function.
-    // See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
-    copyIdeResources = true
-
     // Automatically enable forge AccessTransformers if the file exists
     // This location is hardcoded in Forge and can not be changed.
     // https://github.com/MinecraftForge/MinecraftForge/blob/be1698bb1554f9c8fa2f58e32b9ab70bc4385e60/fmlloader/src/main/java/net/minecraftforge/fml/loading/moddiscovery/ModFile.java#L123
@@ -34,10 +25,14 @@ minecraft {
     }
 
     runs {
+        configureEach {
+            args "--mixin.config=${mod_id}.mixins.json"
+            args "--mixin.config=${mod_id}_forge.mixins.json"
+        }
+
         client {
-            workingDirectory file('runs/client')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Client'
+            workingDir.convention layout.projectDirectory.dir('runs/client')
+//            taskName 'Client'
             mods {
                 modClientRun {
                     source sourceSets.main
@@ -46,9 +41,8 @@ minecraft {
         }
 
         server {
-            workingDirectory file('runs/server')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Server'
+            workingDir.convention layout.projectDirectory.dir('runs/server')
+//            taskName 'Server'
             mods {
                 modServerRun {
                     source sourceSets.main
@@ -57,10 +51,9 @@ minecraft {
         }
 
         data {
-            workingDirectory file('runs/data')
+            workingDir.convention layout.projectDirectory.dir('runs/data')
             args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Data'
+//            taskName 'Data'
             mods {
                 modDataRun {
                     source sourceSets.main
@@ -72,10 +65,16 @@ minecraft {
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+}
+
 dependencies {
-    minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
-    implementation "com.yungnickyoung.minecraft.yungsapi:YungsApi:${mc_version}-Forge-${yungsapi_version}"
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    implementation minecraft.dependency("net.minecraftforge:forge:${mc_version}-${forge_version}")
+    implementation "com.yungnickyoung.minecraft.yungsapi:YungsApi-Forge:${mc_version}-${yungsapi_version}"
+    annotationProcessor 'org.spongepowered:mixin:0.8.7:processor'
 
     // Hack fix for now, force jopt-simple to be exactly 5.0.4 because Mojang ships that version, but some transitive dependencies request 6.0+
     // Recommended by Forge.
@@ -90,11 +89,6 @@ jar {
                 'MixinConfigs': "${mod_id}.mixins.json,${mod_id}_forge.mixins.json",
         ])
     }
-}
-
-mixin {
-    config "${mod_id}.mixins.json"
-    config "${mod_id}_forge.mixins.json"
 }
 
 // Merge the resources and classes into the same directory.
