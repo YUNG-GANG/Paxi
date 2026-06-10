@@ -10,12 +10,6 @@ def useLocalYungsApi = findProject(':yungsapi') != null
 repositories {
     maven { url "https://maven.shedaniel.me/" }
     maven { url "https://maven.terraformersmc.com/releases/" }
-    maven {
-        url "https://www.cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
-    }
 }
 
 dependencies {
@@ -35,10 +29,6 @@ dependencies {
     // Reflections
     implementation(include("org.reflections:reflections:0.10.2"))
 
-    // For testing mod-dependent RPs
-//    implementation "curse.maven:travelers-titles-fabric-590990:5812595"
-//    implementation "curse.maven:cloth-config-348521:5729125"
-
     // ClothConfig
     implementation "me.shedaniel.cloth:cloth-config-fabric:${project.clothconfig_version_fabric}"
 
@@ -47,15 +37,10 @@ dependencies {
 }
 
 loom {
-    def aw = file("src/main/resources/${mod_id}.accesswidener")
+    def aw = project(':Common').file("src/main/resources/${mod_id}.accesswidener")
     if (aw.exists()) {
         accessWidenerPath.set(aw)
     }
-
-    mixin {
-        defaultRefmapName.set("${mod_id}.refmap.json")
-    }
-
     runs {
         client {
             client()
@@ -72,6 +57,25 @@ loom {
     }
 }
 
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements', 'includeInternal', 'modCompileClasspath'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'fabric')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'fabric')
+            }
+        }
+    }
+}
+
 String[] compatibleVersions = project.compatible_versions.split(',')
 task publishCurseForgeFabric(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     dependsOn(tasks.jar)
@@ -83,7 +87,10 @@ task publishCurseForgeFabric(type: net.darkhax.curseforgegradle.TaskPublishCurse
     mainFile.changelogType = 'markdown'
     mainFile.changelog = file("../CHANGELOG.md").exists() ? file("../CHANGELOG.md").text : "No changelog provided"
     mainFile.releaseType = 'release'
+    mainFile.addRequirement('yungs-api-fabric')
     mainFile.addRequirement('fabric-api')
+    mainFile.addRequirement('cloth-config')
+    mainFile.addOptional('modmenu')
     mainFile.displayName = "[${mc_version}] ${mod_full_name} v${rawVersion} (Fabric)"
     compatibleVersions.each { version ->
         mainFile.addGameVersion(version)
@@ -105,7 +112,10 @@ modrinth {
         // scope.type
         // The scope can be `required`, `optional`, `incompatible`, or `embedded`
         // The type can either be `project` or `version`
+        required.project "yungs-api"
         required.project "fabric-api"
+        required.project "cloth-config"
+        optional.project "modmenu"
     }
 }
 tasks.modrinth.dependsOn(tasks.jar)
