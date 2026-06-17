@@ -9,7 +9,7 @@ import java.nio.file.Path;
 
 public class PaxiCommon {
     public static final String MOD_ID = "paxi";
-    public static final String VERSION_CONFIG_STR = "1_21"; // TODO: Update this for each release
+    public static final String VERSION_CONFIG_STR = "26_1"; // TODO: Update this for each release
 
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static final ConfigModule CONFIG = new ConfigModule();
